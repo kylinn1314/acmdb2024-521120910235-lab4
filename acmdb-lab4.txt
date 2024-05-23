@@ -1,0 +1,39 @@
+用时10h（4天断续）
+困难：后面测试时，parser文件的import zql出现问题，在intellij IDEA和vscode上面都遇见，因时间限制暂未解决。
+
+练习1: IntHistogram.java的实现
+
+目标: 开发一个用于记录表统计信息的类IntHistogram，用于后续的查询选择性估计。该类需支持通过桶式方法或其他有效策略来计算直方图，以合理估算表中数据分布。
+步骤：
+1、首先需要把值传进来放入 buckets
+2、然后根据传进来的运算符，计算值所占的比例
+3、计算的过程
+	首先统计当前值 value 前的所有总数，也就是通过buckets[] 去统计所有的总数
+	然后就去计算value所占的数量，其实就是计算面积，index 是 value 所在的索引柱
+	buckets[index] / width 计算出当前柱的高度（每个柱子的宽度是相同的，整个柱子的面积除于宽度就是高度）
+	value - index * width - min 计算当前柱所占的宽度（减去当前所有柱子前的宽度再减去最小值，也就获得了所占区域的宽度）
+	然后对面积进行计算 (1.0 * buckets[index] / width) * (value - index * width - min)
+	这里 1.0 的目的是 避免精度丢失
+
+练习2
+目标: 在TableStats类中完成方法和结构的填充，以支持计算表中的元组数量、页数及针对特定字段的谓词选择性估计。
+先查询每行，通过SeqScan，然后在根据每段建立直方图，只需要将行迭代器重置，遍历每个段
+
+练习3
+目标: 在JoinOptimizer.java中实现两个方法，分别用于估算连接操作的成本和基数。
+estimateJoinCost(LogicalJoinNode j, int card1, int card2, double cost1, double cost2)
+估计花费的成本
+公式 = IO 成本（表1 检索成本 + 每一行都需要检索 表2） + CPU成本（总共的扫描次数）
+当相等的情况下，都是主键的情况下，取最小的主键，都是非主键的情况下，取最大的非主键，一非一主的时候，取非主键
+当不是相等运算符号的时候，取 30% * card1 * card2
+
+练习4: Join Ordering
+
+目标: 实现orderJoins方法，确定最经济的连接顺序
+枚举给定子集的所有大小
+printJoins()：将连接计划进行图形展示（基于Swing）
+
+private CostCard computeCostAndCardOfSubplan：计算子查询的查询代价
+
+orderJoins(…)：在指定表上计算一个有效合理的逻辑连接
+
